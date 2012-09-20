@@ -1,13 +1,7 @@
 #!/usr/bin/python
 
 import sys
-
-class ArgumentFormatError(Exception):
-  pass
-
-class UnknownQueryTypeError(Exception):
-  pass
-
+import time
 
 '''
 Class that represents a database query, either specified from the command line
@@ -101,7 +95,8 @@ class Record(object):
       return '%s, %s, %s' % (self.studentLast, self.studentFirst,
                              self.classroom)
     else:
-      raise UnknownQueryTypeError('Unknown query type "%s"' % type_)
+      print 'Unknown query type "%s"' % type_
+      return
 
 '''
 Handles a database query of one of the following forms, printing the matching
@@ -114,7 +109,8 @@ records to sys.stdout:
 '''
 def HandleQuery(args):
   if not len(args):
-    raise ArgumentFormatError('Missing query arguments')
+    print 'Missing query arguments'
+    return
 
   if args[0] == 'S:' or args[0] == 'Student:':
     if len(args) == 2:
@@ -123,37 +119,43 @@ def HandleQuery(args):
       if args[2] == 'B' or args[2] == 'Bus':
         query = Query(Query.Type.STUDENT_BUS, args[1])
       else:
-        raise ArgumentFormatError('Unknown argument to "%s": "%s". %s' % (
-                                      args[0],
-                                      args[2],
-                                      SyntaxString(Query.Type.STUDENT)))
+        print 'Unknown argument to "%s": "%s". %s' % (
+            args[0],
+            args[2],
+            SyntaxString(Query.Type.STUDENT))
+        return
     else:
-      raise ArgumentFormatError('Missing argument to "%s". %s' % (
-                                    args[0],
-                                    SyntaxString(Query.Type.STUDENT)))
+      print 'Missing argument to "%s". %s' % (
+          args[0],
+          SyntaxString(Query.Type.STUDENT))
+      return
   elif args[0] == 'T:' or args[0] == 'Teacher:':
     if len(args) == 2:
       query = Query(Query.Type.TEACHER, args[1])
     else:
-      raise ArgumentFormatError('Missing argument to "%s". %s' % (
-                                    args[0],
-                                    SyntaxString(Query.Type.TEACHER)))
+      print 'Missing argument to "%s". %s' % (
+          args[0],
+          SyntaxString(Query.Type.TEACHER))
+      return
   elif args[0] == 'G:' or args[0] == 'Grade:':
     if len(args) == 2:
       query = Query(Query.Type.GRADE, args[1])
     else:
-      raise ArgumentFormatError('Missing argument to "%s". %s' % (
-                                    args[0],
-                                    SyntaxString(Query.Type.GRADE)))
+      print 'Missing argument to "%s". %s' % (
+          args[0],
+          SyntaxString(Query.Type.GRADE))
+      return
   elif args[0] == 'B:' or args[0] == 'Bus:':
     if len(args) == 2:
       query = Query(Query.Type.BUS, args[1])
     else:
-      raise ArgumentFormatError('Missing argument to "%s". %s' % (
-                                    args[0],
-                                    SyntaxString(Query.Type.BUS)))
+      print 'Missing argument to "%s". %s' % (
+          args[0],
+          SyntaxString(Query.Type.BUS))
+      return
   else:
-    raise ArgumentFormatError('Unknown query type "%s"' % args[0])
+    print 'Unknown query type "%s"' % args[0]
+    return
 
   PrintMatches(query)
 
@@ -164,10 +166,16 @@ Query |query|.
 query: The query to match Records against.
 '''
 def PrintMatches(query):
+  records = []
+  timeBefore = time.time()
   for line in open('students.txt'):
     record = Record(line)
     if query.MatchesRecord(record):
-      print record.ToString(query.type_)
+      records.append(record)
+  for record in records:
+    print record.ToString(query.type_)
+  print '(Took %f seconds)' % (time.time() - timeBefore)
+
 
 '''
 Returns the syntax of Query with Type |type_|.
@@ -184,7 +192,8 @@ def SyntaxString(type_):
       Query.Type.BUS: 'Syntax: B[us]: <number>',
     }[type_]
   except KeyError:
-    raise NotImplementedError('Type %s missing syntax definition' % type_)
+    print 'Type %s missing syntax definition' % type_
+    return
 
 def PrintInteractiveHelp():
   print 'Valid queries:'
@@ -205,7 +214,7 @@ def main():
   line = sys.stdin.readline().strip()
   while line != 'Q' and line != 'Quit':
     HandleQuery(line.split())
-    line = sys.stdin.readline()
+    line = sys.stdin.readline().strip()
 
 if __name__ == '__main__':
   main()
