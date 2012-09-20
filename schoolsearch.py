@@ -186,22 +186,26 @@ def SyntaxString(type_):
   except KeyError:
     raise NotImplementedError('Type %s missing syntax definition' % type_)
 
+def PrintInteractiveHelp():
+  print 'Valid queries:'
+  print '  S[tudent]: <lastname> [B[us]]'
+  print '  T[eacher]: <lastname>'
+  print '  G[rade]: <number>'
+  print '  B[us]: <number>'
+  print 'Enter Q[uit] to quit.'
+
 def main():
   # Batch mode.
   if len(sys.argv) > 1:
     HandleQuery(sys.argv[1:])
+    return
+
   # Interactive mode.
-  else:
-    print 'Valid queries:'
-    print '  S[tudent]: <lastname> [B[us]]'
-    print '  T[eacher]: <lastname>'
-    print '  G[rade]: <number>'
-    print '  B[us]: <number>'
-    print 'Enter Q[uit] to quit.'
-    line = sys.stdin.readline().strip()
-    while line != 'Q' and line != 'Quit':
-      HandleQuery(line.split())
-      line = sys.stdin.readline()
+  PrintInteractiveHelp()
+  line = sys.stdin.readline().strip()
+  while line != 'Q' and line != 'Quit':
+    HandleQuery(line.split())
+    line = sys.stdin.readline()
 
 if __name__ == '__main__':
   main()
